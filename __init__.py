@@ -99,6 +99,14 @@ class Node(object):
 		#return str(self.data) + str([str(child.data) for child in self.childs])
 	def __repr__(self):
 		return "enigtree.Node containing ", str(self.data)
+	def elaborate_str(self):
+		returnstring = str(self)
+		if self.childs:
+			returnstring = returnstring + '(' #TODO: Nicer! Test!
+			for child in self.childs:
+				returnstring = returnstring + str(child) + ','
+			returnstring = returnstring + ')'
+		return returnstring
 	def progeny(self, generations=-1):
 		"""Recursive! Handle with care! Right now, it doesn't check any loops and duplicates! If generations is not a nonnegative integer, it will return the complete progeny."""
 		progeny = [self]
