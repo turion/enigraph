@@ -102,10 +102,7 @@ class Node(object):
 	def elaborate_str(self):
 		returnstring = str(self)
 		if self.childs:
-			returnstring = returnstring + '(' #TODO: Nicer! Test!
-			for child in self.childs:
-				returnstring = returnstring + str(child) + ','
-			returnstring = returnstring + ')'
+			returnstring = '\n-'.join( ["v" + returnstring] + ['\n-'.join(child.elaborate_str().split("\n")) for child in self.childs ] )
 		return returnstring
 	def progeny(self, generations=-1):
 		"""Recursive! Handle with care! Right now, it doesn't check any loops and duplicates! If generations is not a nonnegative integer, it will return the complete progeny."""
