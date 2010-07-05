@@ -1,7 +1,8 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-# enigtree package to provide a simple tree functionality, mainly for enigmage
+"""enigtree
+Provides a simple tree functionality, mainly for enigmage."""
 
 __ALL__ = [ 'directory' ]
 
@@ -20,13 +21,8 @@ class Node(object):
 		self.successor, self.predecessor = successor, predecessor
 		self._childs = []
 	def adopt(self, node, favourite=False):
-		"""Only does the links on the parent side. Consider the parent property if you want links on both sides."""
-		#print self, " had the following childs:"
-		#for child in self.childs: print child
-		#print self, " is adopting ", node
-		if node and (not node in self.childs): self.childs.append(node)
-		#print self, " has the following childs now:"
-		#for child in self.childs: print child
+		"""Only does the links on the parent side. Consider the parent property if you want links on both sides. This routine is very low level because it adresses only ._childs and not .childs! Use at own risk."""
+		if node and (not node in self._childs): self._childs.append(node)
 		if favourite: self.favourite_child = node
 	@property
 	def favourite_child(self):
