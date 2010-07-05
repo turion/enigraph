@@ -50,8 +50,9 @@ class DirNode(enigtree.Node):
 			self._childs_done = True
 		return self._childs
 	def child_accepted(self, child_path):
-		"""Here it is possible to perform tests on the file specified by child allow only special files/directories"""
-		return True
+		"""Here it is possible to perform tests on the file specified by child allow only special files/directories.
+		Until now, it excludes hidden directories and symbolic links."""
+		return not (child_path[0] == "." or os.path.islink(os.path.join(self.path, child_path)))
 	def sort_childs(self):
 		"""Here you can implement future sorting algorithms which are performed at each directory scan."""
 		pass

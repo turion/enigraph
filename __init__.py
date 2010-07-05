@@ -96,6 +96,7 @@ class Node(object):
 	def __repr__(self):
 		return "enigtree.Node containing ", str(self.data)
 	def elaborate_str(self):
+		"""See progeny.__doc__."""
 		returnstring = str(self)
 		if self.childs:
 			returnstring = '\n-'.join( ["v" + returnstring] + ['\n-'.join(child.elaborate_str().split("\n")) for child in self.childs ] )
