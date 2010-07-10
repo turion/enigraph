@@ -12,13 +12,10 @@ class Node(object):
 	parents = []
 	_childs = []
 	_favourite_child = None
-	_successor = None
-	_predecessor = None
-	def __init__(self, data=None, parent=None, successor=None, predecessor=None):
+	def __init__(self, data=None, parent=None):
 		self.data = data
 		self.parents = []
 		self.parent = parent
-		self.successor, self.predecessor = successor, predecessor
 		self._childs = []
 	def adopt(self, node, favourite=False):
 		"""Only does the links on the parent side. Consider the parent property if you want links on both sides. This routine is very low level because it adresses only ._childs and not .childs! Use at own risk."""
@@ -57,30 +54,24 @@ class Node(object):
 			predecessors.append(next)
 			next = next.predecessor
 		return predecessors
-	def become_predecessor(self, node):
-		self._successor = node
-		try:
-			node._predecessor = self
-		except AttributeError:
-			pass
-	def become_successor(self, node):
-		self._predecessor = node
-		try:
-			node._successor = self
-		except AttributeError:
-			pass
 	@property
 	def successor(self):
-		return self._successor
-	@successor.setter
-	def successor(self, successor):
-		self.become_predecessor(successor)
+		successor = None
+		if self.parent:
+			childs = self.parent.childs
+			index = childs.index(self)
+			if len(childs) > index + 1:
+				successor = childs[index+1]
+		return successor
 	@property
 	def predecessor(self):
-		return self._predecessor
-	@predecessor.setter
-	def predecessor(self, predecessor):
-		self.become_successor(predecessor)
+		predecessor = None
+		if self.parent:
+			childs = self.parent.childs
+			index = childs.index(self)
+			if index > 0:
+				predecessor = childs[index-1]
+		return predecessor
 	@property
 	def parent(self):
 		return self._parent
@@ -92,14 +83,13 @@ class Node(object):
 			parent.adopt(self)
 	def __str__(self):
 		return str(self.data)
-		#return str(self.data) + str([str(child.data) for child in self.childs])
 	def __repr__(self):
-		return "enigtree.Node containing ", str(self.data)
+		return "enigtree.Node containing " + str(self.data)
 	def elaborate_str(self):
 		"""See progeny.__doc__."""
 		returnstring = str(self)
 		if self.childs:
-			returnstring = '\n-'.join( ["v" + returnstring] + ['\n-'.join(child.elaborate_str().split("\n")) for child in self.childs ] )
+			returnstring = '\n|-'.join( ["+" + returnstring] + ['\n  '.join(child.elaborate_str().split("\n")) for child in self.childs ] )
 		return returnstring
 	def progeny(self, generations=-1):
 		"""Recursive! Handle with care! Right now, it doesn't check any loops and duplicates! If generations is not a nonnegative integer, it will return the complete progeny."""
@@ -113,14 +103,6 @@ class Node(object):
 				except RuntimeError:
 					pass
 		return progeny
-	def align_childs(self, enforce=True):
-		success = True
-		for child_index in range(len(self.childs)-1): # If no childs, range will return an empty set
-			if enforce or not (self.childs[child_index].successor or self.childs[child_index+1].predecessor):
-				self.childs[child_index].successor = self.childs[child_index+1]
-			else:
-				success = False
-		return success #
 	@property
 	def childs(self):
 		"""Read-only so far, may be with writing access in subclasses."""
