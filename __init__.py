@@ -12,6 +12,7 @@ class Node(object):
 	parents = []
 	_childs = []
 	_favourite_child = None
+	open = False
 	def __init__(self, data=None, parent=None):
 		self.data = data
 		self.parents = []
