@@ -7,17 +7,13 @@ Provides a simple tree functionality, mainly for enigmage."""
 __ALL__ = [ 'directory' ]
 
 class Node(object):
-	data = None
-	_parent = None
-	parents = []
-	_childs = []
-	_favourite_child = None
 	open = False
 	def __init__(self, data=None, parent=None):
 		self.data = data
 		self.parents = []
 		self.parent = parent
 		self._childs = []
+		self._favourite_child = None
 	def adopt(self, node, favourite=False):
 		"""Only does the links on the parent side. Consider the parent property if you want links on both sides. This routine is very low level because it adresses only ._childs and not .childs! Use at own risk."""
 		if node and (not node in self._childs): self._childs.append(node)
@@ -32,8 +28,9 @@ class Node(object):
 		else:
 			print self, ' says: "', child, '" is not my child.'
 	def disinherit(self, node, next_favourite=None):
+		"""Technical"""
 		try:
-			self.childs.remove(node)
+			self._childs.remove(node)
 			node.parents.remove(self)
 			self.favourite_child = next_favourite # Herzlos
 		except:
@@ -78,10 +75,10 @@ class Node(object):
 		return self._parent
 	@parent.setter
 	def parent(self, parent):
-		self._parent = parent
 		if parent:
 			self.parents.append(parent)
 			parent.adopt(self)
+		self._parent = parent
 	def __str__(self):
 		return str(self.data)
 	def __repr__(self):

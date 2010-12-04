@@ -56,3 +56,19 @@ class DirNode(enigtree.Node):
 	def sort_childs(self):
 		"""Here you can implement future sorting algorithms which are performed at each directory scan."""
 		pass
+	def adopt(self, node, *args, **kwargs):
+		if not self.isdir:
+			raise ValueError("Only DirNodes pointing to directories can contain other DirNodes!")
+		try:
+			old_parent = node._parent
+		except:
+			old_parent = None		
+		enigtree.Node.adopt(self, node, *args, **kwargs)
+		old_path, new_path = node.path, os.path.join(self.path, os.path.basename(node.path))
+		if old_path != new_path:
+			os.rename(old_path, new_path)
+			node.path = new_path
+			if old_parent:
+				old_parent._childs_done = False
+			self._childs_done = False
+			self.disinherit(node)
