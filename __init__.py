@@ -11,9 +11,9 @@ class Node(object):
 	def __init__(self, data=None, parent=None): # Should there be a parent keyword?
 		self.data = data
 		self.parents_history = []
-		self.parent = parent
 		self._childs = []
 		self._favourite_child = None
+		self.parent = parent
 	def adopt(self, node, favourite=False):
 		"""Only does the links on the parent side. Consider the parent property if you want links on both sides. This routine is very low level because it adresses only ._childs and not .childs! Use at own risk.
 		Subclass to change the behaviour of the parent property.
@@ -22,6 +22,9 @@ class Node(object):
 			self._childs.append(node)
 		if favourite:
 			self.favourite_child = node
+	def post_adopt(self, node):
+		"""Hook"""
+		pass
 	@property
 	def favourite_child(self):
 		return self._favourite_child
@@ -83,6 +86,7 @@ class Node(object):
 			self.parents_history.append(parent)
 			parent.adopt(self)
 		self._parent = parent
+		parent.post_adopt(self)
 	def __str__(self):
 		return str(self.data)
 	def __repr__(self):
