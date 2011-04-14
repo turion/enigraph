@@ -85,8 +85,10 @@ class Node(object):
 		if parent:
 			self.parents_history.append(parent)
 			parent.adopt(self)
-		self._parent = parent
-		parent.post_adopt(self)
+			self._parent = parent
+			parent.post_adopt(self)
+		else:
+			self._parent = None
 	def __str__(self):
 		return str(self.data)
 	def __repr__(self):
