@@ -18,8 +18,10 @@ class Node(object):
 		"""Only does the links on the parent side. Consider the parent property if you want links on both sides. This routine is very low level because it adresses only ._childs and not .childs! Use at own risk.
 		Subclass to change the behaviour of the parent property.
 		"""
-		if node and (not node in self._childs): self._childs.append(node)
-		if favourite: self.favourite_child = node
+		if node and not (node in self._childs):
+			self._childs.append(node)
+		if favourite:
+			self.favourite_child = node
 	@property
 	def favourite_child(self):
 		return self._favourite_child
