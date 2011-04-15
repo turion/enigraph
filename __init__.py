@@ -77,11 +77,9 @@ class Node(object):
 			if index > 0:
 				predecessor = childs[index-1]
 		return predecessor
-	@property
-	def parent(self):
+	def get_parent(self):
 		return self._parent
-	@parent.setter
-	def parent(self, parent):
+	def set_parent(self, parent):
 		if parent:
 			self.parents_history.append(parent)
 			parent.adopt(self)
@@ -89,6 +87,7 @@ class Node(object):
 			parent.post_adopt(self)
 		else:
 			self._parent = None
+	parent = property(get_parent, set_parent)
 	def __str__(self):
 		return str(self.data)
 	def __repr__(self):
