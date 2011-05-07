@@ -44,7 +44,7 @@ class Node(object):
 			pass
 		if node._parent == self: node._parent = None # Ganz brutal ;)
 	@property
-	def successors(self):
+	def successors(self): #TODO: rewrite as generator
 		successors = []
 		next = self.successor
 		while next:
@@ -61,22 +61,18 @@ class Node(object):
 		return predecessors
 	@property
 	def successor(self):
-		successor = None
 		if self.parent:
 			childs = self.parent.childs
 			index = childs.index(self)
 			if len(childs) > index + 1:
-				successor = childs[index+1]
-		return successor
+				return childs[index+1] # returns None if one of the ifs fails
 	@property
 	def predecessor(self):
-		predecessor = None
 		if self.parent:
 			childs = self.parent.childs
 			index = childs.index(self)
 			if index > 0:
-				predecessor = childs[index-1]
-		return predecessor
+				return childs[index-1]
 	def get_parent(self):
 		return self._parent
 	def set_parent(self, parent):
