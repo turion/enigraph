@@ -87,7 +87,7 @@ class Node(object):
 	def __str__(self):
 		return str(self.data)
 	def __repr__(self):
-		return "enigtree.Node containing " + str(self.data)
+		return str(type(self)) + " containing " + str(self.data)
 	def elaborate_str(self, generations=-1): # TESTME
 		"""See progeny.__doc__."""
 		returnstring = str(self)
