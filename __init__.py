@@ -13,6 +13,7 @@ class Node(object):
 		self.parents_history = []
 		self._childs = []
 		self._favourite_child = None
+		self._parent = None
 		self.parent = parent
 	def adopt(self, node, favourite=False):
 		"""Only does the links on the parent side. Consider the parent property if you want links on both sides. This routine is very low level because it adresses only ._childs and not .childs! Use at own risk.
@@ -79,8 +80,11 @@ class Node(object):
 		if parent:
 			self.parents_history.append(parent)
 			parent.adopt(self)
+			last_parent = self._parent
 			self._parent = parent
 			parent.post_adopt(self)
+			if last_parent:
+				last_parent.disinherit(self)
 		else:
 			self._parent = None
 	parent = property(get_parent, set_parent)
