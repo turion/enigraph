@@ -115,3 +115,17 @@ class Node(object):
 	def childs(self):
 		"""Read-only so far, may be with writing access in subclasses."""
 		return self._childs
+
+if __name__ == "__main__":
+	a = Node("Heinz")
+	ab = Node("Karl")
+	ac = Node("Dieter")
+	acd = Node("Maja")
+	ab.parent = a
+	ac.parent = a
+	acd.parent = ac
+	print a.elaborate_str()
+	print [node.data for node in a.childs]
+	acd.parent = a
+	print a.elaborate_str()
+	print [node.data for node in a.childs]
