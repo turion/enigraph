@@ -6,7 +6,7 @@ Provides a simple tree functionality, mainly for enigmage."""
 
 __ALL__ = [ 'directory' ]
 
-class BaseNode(object):
+class BaseNode:
 	"""You will have to implement:
 		_get_parent(self)
 		_set_parent(self, parent)
@@ -15,6 +15,12 @@ class BaseNode(object):
 		_add_child(self, child)
 		_remove_child(self, child)
 	"""
+	def __init__(self):
+		self.followers = set()
+	def follow(self, node):
+		node.followers.add(self)
+	def unfollow(self, node):
+		node.followers.remove(self)
 	@property
 	def parent(self):
 		return self._get_parent()
@@ -36,6 +42,7 @@ class Node(BaseNode):
 	def __init__(self):
 		self._children = set()
 		self._parent = None
+		BaseNode.__init__(self)
 	def _get_parent(self):
 		return self._parent
 	def _set_parent(self, parent):
@@ -56,49 +63,50 @@ class DataNode(Node):
 	def __str__(self):
 		return self.data
 
-class ProgenyFormatter(object):
+class NoFormatter:
 	def __call__(self, node):
 		return node
-	@property
 	def deeper(self):
 		return self
 
-class PrettyFormatter(object):
+class PrettyFormatter:
 	def __init__(self, indentation=0):
 		self.indentation = indentation
-	@property
 	def deeper(self):
 		return type(self)(self.indentation+1)
 	def __call__(self, node):
 		return " " * self.indentation + "{0}{1}".format(node._has_children() and "+" or "|", node)
 
-def progeny(node, generations=-1, formatter=ProgenyFormatter()):
+class GenerationwiseFormatter:
+	def __init__(self, generation=0, announce_string="Generation {0}:", announced_generations=None):
+		self.generation = generation
+		self.announce_string = announce_string
+		if not announced_generations:
+			announced_generations = set()
+		self.announced_generations = announced_generations
+	def deeper(self):
+		return type(self)(generation=self.generation+1, announce_string=self.announce_string, announced_generations=self.announced_generations)
+	def __call__(self, node):
+		if self.generation not in self.announced_generations:
+			self.announced_generations.add(self.generation)
+			return self.announce_string.format(self.generation) + "\n{0}".format(node)
+		else:
+			return str(node)
+
+def progeny_depth(node, generations=-1, formatter=NoFormatter()):
 	if generations:
 		for child in node.children:
 			yield formatter(child)
-			for childchild in progeny(child, generations-1):
-				yield formatter.deeper(childchild)
+			for childchild in progeny_depth(child, generations-1, formatter.deeper()):
+				yield childchild
 
-#~ class NiceFormatter(object):
-
-def elaborate_str(node, generations=-1):
-	"""See progeny.__doc__."""
-	returnstring = str(self)
+def progeny_width(node, generations=-1, formatter=NoFormatter()):
 	if generations:
-		if self.childs:
-			returnstring = '\n|-'.join( ["+" + returnstring] + ['\n  '.join(child.elaborate_str(generations=generations-1).split("\n")) for child in self.childs ] )
-	return returnstring
-def oprogeny(self, generations=-1):
-	"""Recursive! Handle with care! Right now, it doesn't check any loops and duplicates! If generations is not a nonnegative integer, it will return the complete progeny."""
-	progeny = [self]
-	if generations:
-		if generations > 0: generations -= 1
-		for child in self.childs:
-			try:
-				progeny += child.progeny(generations)
-			except RuntimeError:
-				pass
-	return progeny
+		for child in node.children:
+			yield formatter(child)
+		for child in node.children:
+			for childchild in progeny_width(child, generations-1, formatter.deeper()):
+				yield childchild
 
 if __name__ == "__main__":
 	a = DataNode("Opa")
@@ -114,5 +122,13 @@ if __name__ == "__main__":
 	ace.parent = ac
 	acdf.parent = acd
 	aceg.parent = ace
-	for ahne in progeny(a, formatter = PrettyFormatter()):
+	print("The progeny of {0}".format(a))
+	print("Depth first")
+	for ahne in progeny_depth(a, formatter = PrettyFormatter()):
+		print(ahne)
+	print("Width first")
+	for ahne in progeny_width(a, formatter = GenerationwiseFormatter()):
+		print(ahne)
+	print("Width first, only two generations")
+	for ahne in progeny_width(a, generations=2, formatter = GenerationwiseFormatter()):
 		print(ahne)
