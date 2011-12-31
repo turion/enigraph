@@ -6,6 +6,8 @@ Provides a simple tree functionality, mainly for enigmage."""
 
 __ALL__ = [ 'directory' ]
 
+from errors import *
+
 class BaseNode:
 	"""You will have to implement:
 		_get_parent(self)
@@ -15,25 +17,39 @@ class BaseNode:
 		_add_child(self, child)
 		_remove_child(self, child)
 	"""
+	_readonly = False
 	def __init__(self):
 		self.followers = set()
+		self._following = None
+	@property
+	def readonly(self):
+		return self._following or self._readonly
+	@property
+	def following(self):
+		return self._following
 	def follow(self, node):
 		node.followers.add(self)
+		self._following = node
 	def unfollow(self, node):
 		node.followers.remove(self)
+		self._following = None
 	@property
 	def parent(self):
 		return self._get_parent()
 	@parent.setter
 	def parent(self, parent):
-		old_parent = self.parent
-		if old_parent != parent:
-			self._set_parent(parent)
-			try:
-				if old_parent:
-					old_parent._remove_child(self)
-			finally:
-				parent._add_child(self)
+		if self.readonly:
+			raise EnigtreeReadOnlyError
+		else:
+			old_parent = self.parent # cache to prevent multiple, potentially expensive calculation
+			if old_parent != parent:
+				self._set_parent(parent)
+				try:
+					if old_parent:
+						old_parent._remove_child(self)
+				finally:
+					if parent:
+						parent._add_child(self)
 	@property
 	def children(self):
 		return self._get_children()
