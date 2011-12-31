@@ -3,10 +3,33 @@
 
 """enigtree.directory"""
 
-import enigtree
+#import enigtree
 import os
 
-class DirNode(enigtree.Node):
+import time
+class TimeoutCached:
+	def __init__(self, function, timeout=1):
+		self.timeout = timeout
+		self.function = function
+		self.last_call = time.time() - timeout - 1
+		self.cache = None
+	def __call__(self, *args, **kwargs):
+		if time.time() - self.last_call > self.timeout:
+			self.cache = self.function(*args, **kwargs)
+			self.last_call = time.time()
+		return self.cache
+
+def timeout_cached(function_or_timeout):
+	try:
+		function_or_timeout.__call__
+	except AttributeError:
+		def instantiate_TimeoutCached(function):
+			return TimeoutCached(function, timeout=function_or_timeout)
+		return instantiate_TimeoutCached
+	else:
+		return TimeoutCached(function_or_timeout)
+
+class OldDirNode:#(enigtree.Node):
 	"""An active enigtree.Node that represents a directory tree. Has init_data as a hook for handling the actual data."""
 	_dir = ''
 	def __init__(self, path, *args, **kwargs):
@@ -72,3 +95,12 @@ class DirNode(enigtree.Node):
 				old_parent._childs_done = False
 			self._childs_done = False
 			self.disinherit(node)
+
+if __name__ == "__main__":
+	@timeout_cached(1.3)
+	def calc():
+		print("calculating me")
+		return 2
+	while(True):
+		input()
+		print(calc())
