@@ -148,3 +148,6 @@ if __name__ == "__main__":
 	print("Width first, only two generations")
 	for ahne in progeny_width(a, generations=2, formatter = GenerationwiseFormatter()):
 		print(ahne)
+	print("Width first, NoFormatter")
+	for ahne in progeny_width(a):
+		print(ahne)
