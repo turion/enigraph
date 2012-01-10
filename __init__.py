@@ -14,7 +14,6 @@ class BaseNode(metaclass=abc.ABCMeta):
 	"""You will have to implement:
 		_get_parent(self)
 		_set_parent(self, parent)
-		_has_children(self)
 		_get_children(self)
 		_add_child(self, child)
 		_remove_child(self, child)
@@ -55,14 +54,18 @@ class BaseNode(metaclass=abc.ABCMeta):
 	@property
 	def children(self):
 		return self._get_children()
+	def _has_children(self): # intentionally not abstract
+		try:
+			iter(self.children).__next__()
+		except StopIteration:
+			return False
+		else:
+			return True
 	@abc.abstractmethod
 	def _get_parent(self):
 		pass
 	@abc.abstractmethod
 	def _set_parent(self, parent):
-		pass
-	@abc.abstractmethod
-	def _has_children(self):
 		pass
 	@abc.abstractmethod
 	def _get_children(self):
@@ -83,10 +86,8 @@ class Node(BaseNode):
 		return self._parent
 	def _set_parent(self, parent):
 		self._parent = parent
-	def _has_children(self):
-		return len(self._children)
 	def _get_children(self):
-		return iter(self._children)
+		return iter(self._children) # Do we need iter?
 	def _add_child(self, child):
 		self._children.add(child)
 	def _remove_child(self, child):
