@@ -9,6 +9,9 @@ __ALL__ = [ 'directory' ]
 from errors import *
 
 import abc
+import collections
+
+FollowingInformation = collections.namedtuple("FollowingInformation", "node tag")
 
 class BaseNode(metaclass=abc.ABCMeta):
 	"""You will have to implement:
@@ -20,7 +23,7 @@ class BaseNode(metaclass=abc.ABCMeta):
 	"""
 	_readonly = False
 	def __init__(self):
-		self.followers = set()
+		self._followers = {}
 		self._following = None
 	@property
 	def readonly(self):
@@ -28,11 +31,11 @@ class BaseNode(metaclass=abc.ABCMeta):
 	@property
 	def following(self):
 		return self._following
-	def follow(self, node):
-		node.followers.add(self)
-		self._following = node
+	def follow(self, node, key=None):
+		node._followers[key] = self
+		self._following = FollowingInformation(node=node, key=key)
 	def unfollow(self, node):
-		node.followers.remove(self)
+		node._followers.remove(self)
 		self._following = None
 	@property
 	def parent(self):
@@ -45,6 +48,8 @@ class BaseNode(metaclass=abc.ABCMeta):
 			old_parent = self.parent # cache to prevent multiple, potentially expensive calculation
 			if old_parent != parent:
 				self._set_parent(parent)
+				for key in self._followers:
+					self._followers[key]._set_parent(parent._followers[key])
 				try:
 					if old_parent:
 						old_parent._remove_child(self)
