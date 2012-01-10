@@ -46,19 +46,14 @@ class BaseNode(metaclass=abc.ABCMeta):
 			old_parent = self.parent # cache to prevent multiple, potentially expensive calculation
 			if old_parent != parent:
 				self._set_parent(parent)
-				followers_old_parents = {key: follower.parent for key, follower in self._followers.items()}
-				for key, follower in self._followers.items():
-					follower._set_parent(parent._followers[key])
 				try:
 					if old_parent:
 						old_parent._remove_child_notification(self)
-					for key, follower_old_parent in followers_old_parents.items():
-						follower_old_parent._remove_child_notification(self._followers[key])
 				finally:
 					if parent:
 						parent._add_child_notification(self)
-						for key, follower in self._followers.items():
-							parent._followers[key]._add_child_notification(follower)
+				for key, follower in self._followers.items():
+					follower.parent = parent._followers[key]
 	@property
 	def children(self):
 		return self._get_children()
