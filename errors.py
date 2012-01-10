@@ -6,5 +6,8 @@
 class EnigtreeException(Exception):
 	pass
 
-class EnigtreeReadOnlyError(EnigtreeException):
+class EnigtreeValueError(EnigtreeException, ValueError):
+	pass
+
+class EnigtreeReadOnlyError(EnigtreeValueError):
 	pass

@@ -18,8 +18,6 @@ class BaseNode(metaclass=abc.ABCMeta):
 		_get_parent(self)
 		_set_parent(self, parent)
 		_get_children(self)
-		_add_child(self, child)
-		_remove_child(self, child)
 	"""
 	_readonly = False
 	def __init__(self):
@@ -52,20 +50,13 @@ class BaseNode(metaclass=abc.ABCMeta):
 					self._followers[key]._set_parent(parent._followers[key])
 				try:
 					if old_parent:
-						old_parent._remove_child(self)
+						old_parent._remove_child_notification(self)
 				finally:
 					if parent:
-						parent._add_child(self)
+						parent._add_child_notification(self)
 	@property
 	def children(self):
 		return self._get_children()
-	def _has_children(self): # intentionally not abstract
-		try:
-			iter(self.children).__next__()
-		except StopIteration:
-			return False
-		else:
-			return True
 	@abc.abstractmethod
 	def _get_parent(self):
 		pass
@@ -75,12 +66,17 @@ class BaseNode(metaclass=abc.ABCMeta):
 	@abc.abstractmethod
 	def _get_children(self):
 		pass
-	@abc.abstractmethod
-	def _add_child(self, child):
+	def _add_child_notification(self, child):
 		pass
-	@abc.abstractmethod
-	def _remove_child(self, child):
+	def _remove_child_notification(self, child):
 		pass
+	def _has_children(self): # intentionally not abstract
+		try:
+			iter(self.children).__next__()
+		except StopIteration:
+			return False
+		else:
+			return True
 
 class Node(BaseNode):
 	def __init__(self):
