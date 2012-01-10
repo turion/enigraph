@@ -8,7 +8,9 @@ __ALL__ = [ 'directory' ]
 
 from errors import *
 
-class BaseNode:
+import abc
+
+class BaseNode(metaclass=abc.ABCMeta):
 	"""You will have to implement:
 		_get_parent(self)
 		_set_parent(self, parent)
@@ -53,12 +55,30 @@ class BaseNode:
 	@property
 	def children(self):
 		return self._get_children()
+	@abc.abstractmethod
+	def _get_parent(self):
+		pass
+	@abc.abstractmethod
+	def _set_parent(self, parent):
+		pass
+	@abc.abstractmethod
+	def _has_children(self):
+		pass
+	@abc.abstractmethod
+	def _get_children(self):
+		pass
+	@abc.abstractmethod
+	def _add_child(self, child):
+		pass
+	@abc.abstractmethod
+	def _remove_child(self, child):
+		pass
 
 class Node(BaseNode):
 	def __init__(self):
 		self._children = set()
 		self._parent = None
-		BaseNode.__init__(self)
+		super().__init__()
 	def _get_parent(self):
 		return self._parent
 	def _set_parent(self, parent):
@@ -75,7 +95,7 @@ class Node(BaseNode):
 class DataNode(Node):
 	def __init__(self, data):
 		self.data = data
-		Node.__init__(self)
+		super().__init__()
 	def __str__(self):
 		return self.data
 
