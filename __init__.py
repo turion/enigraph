@@ -110,8 +110,6 @@ class BaseNode(metaclass=abc.ABCMeta):
 		while next_node and avoid_circles(next_node):
 			next_node = next_node.parent
 			yield next_node
-	def __lt__(self, other):
-		return self in other.ancestors
 
 class Node(BaseNode):
 	def __init__(self):
