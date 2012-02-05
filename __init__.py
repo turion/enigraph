@@ -21,12 +21,15 @@ class BaseNode(metaclass=abc.ABCMeta):
 		_get_children(self)
 	"""
 	_readonly = False
+
 	def __init__(self):
 		self._followers = {}
 		self._following = None
+
 	@property
 	def readonly(self):
 		return self._following or self._readonly
+
 	@property
 	def following(self):
 		return self._following
@@ -36,6 +39,7 @@ class BaseNode(metaclass=abc.ABCMeta):
 	def unfollow(self, node):
 		node._followers.remove(self)
 		self._following = None
+
 	@property
 	def parent(self):
 		return self._get_parent()
@@ -52,12 +56,14 @@ class BaseNode(metaclass=abc.ABCMeta):
 						old_parent._remove_child_notification(self)
 				finally:
 					if parent:
-						parent._add_child_notification(self)
+						parent._add_child_notification(self) # alternative implementation: do the _add_child_notification first and allow it to raise exceptions that abort setting the parent
 				for key, follower in self._followers.items():
 					follower.parent = parent._followers[key]
+
 	@property
 	def children(self):
 		return self._get_children()
+
 	@abc.abstractmethod
 	def _get_parent(self):
 		pass
@@ -67,6 +73,7 @@ class BaseNode(metaclass=abc.ABCMeta):
 	@abc.abstractmethod
 	def _get_children(self):
 		pass
+
 	def _add_child_notification(self, child):
 		pass
 	def _remove_child_notification(self, child):
@@ -78,6 +85,7 @@ class BaseNode(metaclass=abc.ABCMeta):
 			return False
 		else:
 			return True
+
 	def progeny(self, method="width", return_root=False, formatter=progeny.NoFormatter(), circle_checker=lambda node: True, **kwargs):
 		"""Performance is much better if the Node class and all its subclasses are hashable"""
 		if method in ("w", "width", "width_first"):
@@ -94,6 +102,7 @@ class BaseNode(metaclass=abc.ABCMeta):
 			yield child
 	def __iter__(self):
 		return self.progeny(circle_checker=progeny.AvoidCircles())
+
 	@property
 	def ancestors(self):
 		avoid_circles = progeny.AvoidCircles()
@@ -101,6 +110,8 @@ class BaseNode(metaclass=abc.ABCMeta):
 		while next_node and avoid_circles(next_node):
 			next_node = next_node.parent
 			yield next_node
+	def __lt__(self, other):
+		return self in other.ancestors
 
 class Node(BaseNode):
 	def __init__(self):
@@ -177,6 +188,7 @@ Call {}'s progeny:""".format(a, acdf, ac))
 The ancestors of {}:""".format(acdf)):
 		for ancestor in acdf.ancestors:
 			print(ancestor)
+		print(acd < acdf)
 	if not input("CachedNodes test"):
 		b = CachedDataNode("b")
 		b2 = CachedDataNode("b")
