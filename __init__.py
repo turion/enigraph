@@ -7,6 +7,7 @@ Provides a simple tree functionality, mainly for enigmage."""
 __ALL__ = [ 'directory' ]
 
 from errors import *
+import progeny
 
 import abc
 import collections
@@ -77,6 +78,29 @@ class BaseNode(metaclass=abc.ABCMeta):
 			return False
 		else:
 			return True
+	def progeny(self, method="width", return_root=False, formatter=progeny.NoFormatter(), circle_checker=lambda node: True, **kwargs):
+		"""Performance is much better if the Node class and all its subclasses are hashable"""
+		if method in ("w", "width", "width_first"):
+			progeny_method = progeny.progeny_width
+		elif method in ("d", "depth", "depth_first"):
+			progeny_method = progeny.progeny_depth
+		else:
+			raise ValueError("Unknown method {}".format(method))
+		if return_root:
+			yield formatter(self)
+		formatter = formatter.deeper()
+		circle_checker(self)
+		for child in progeny_method(self, formatter=formatter, circle_checker=circle_checker, **kwargs):
+			yield child
+	def __iter__(self):
+		return self.progeny(circle_checker=progeny.AvoidCircles())
+	@property
+	def ancestors(self):
+		avoid_circles = progeny.AvoidCircles()
+		next_node = self
+		while next_node and avoid_circles(next_node):
+			next_node = next_node.parent
+			yield next_node
 
 class Node(BaseNode):
 	def __init__(self):
@@ -94,6 +118,7 @@ class Node(BaseNode):
 	def _remove_child_notification(self, child):
 		self._children.remove(child)
 
+
 class DataNode(Node):
 	def __init__(self, data):
 		self.data = data
@@ -101,50 +126,18 @@ class DataNode(Node):
 	def __str__(self):
 		return self.data
 
-class NoFormatter:
-	def __call__(self, node):
-		return node
-	def deeper(self):
-		return self
+# Ähnliches Ergebnis lässt sich erzielen, wenn man eine Klassendefinition mit @functools.lru_cache() dekoriert
+class CachedNode(BaseNode):
+	cache = {}
+	def __new__(cls, index):
+		try:
+			return cls.cache[index]
+		except KeyError:
+			cls.cache[index] = result = super().__new__(cls)
+			return result
 
-class PrettyFormatter:
-	def __init__(self, indentation=0):
-		self.indentation = indentation
-	def deeper(self):
-		return type(self)(self.indentation+1)
-	def __call__(self, node):
-		return " " * self.indentation + "{0}{1}".format(node._has_children() and "+" or "|", node)
-
-class GenerationwiseFormatter:
-	def __init__(self, generation=0, announce_string="Generation {0}:", announced_generations=None):
-		self.generation = generation
-		self.announce_string = announce_string
-		if not announced_generations:
-			announced_generations = set()
-		self.announced_generations = announced_generations
-	def deeper(self):
-		return type(self)(generation=self.generation+1, announce_string=self.announce_string, announced_generations=self.announced_generations)
-	def __call__(self, node):
-		if self.generation not in self.announced_generations:
-			self.announced_generations.add(self.generation)
-			return self.announce_string.format(self.generation) + "\n{0}".format(node)
-		else:
-			return str(node)
-
-def progeny_depth(node, generations=-1, formatter=NoFormatter()):
-	if generations:
-		for child in node.children:
-			yield formatter(child)
-			for childchild in progeny_depth(child, generations-1, formatter.deeper()):
-				yield childchild
-
-def progeny_width(node, generations=-1, formatter=NoFormatter()):
-	if generations:
-		for child in node.children:
-			yield formatter(child)
-		for child in node.children:
-			for childchild in progeny_width(child, generations-1, formatter.deeper()):
-				yield childchild
+class CachedDataNode(CachedNode, DataNode):
+	pass
 
 if __name__ == "__main__":
 	a = DataNode("Opa")
@@ -160,16 +153,33 @@ if __name__ == "__main__":
 	ace.parent = ac
 	acdf.parent = acd
 	aceg.parent = ace
-	print("The progeny of {0}".format(a))
-	print("Depth first")
-	for ahne in progeny_depth(a, formatter = PrettyFormatter()):
-		print(ahne)
-	print("Width first")
-	for ahne in progeny_width(a, formatter = GenerationwiseFormatter()):
-		print(ahne)
-	print("Width first, only two generations")
-	for ahne in progeny_width(a, generations=2, formatter = GenerationwiseFormatter()):
-		print(ahne)
-	print("Width first, NoFormatter")
-	for ahne in progeny_width(a):
-		print(ahne)
+	if not input("The progeny of {} (press any key to abort, press enter to test)".format(a)):
+		input("\nWidth first")
+		for ahne in a.progeny(formatter = progeny.GenerationwiseFormatter()):
+			print(ahne)
+		input("\nDepth first, with root of the tree")
+		for ahne in a.progeny(method="d", formatter = progeny.PrettyFormatter(), return_root=True):
+			print(ahne)
+		input("\nWidth first, only two generations, with root of the tree")
+		for ahne in a.progeny(generations=2, formatter = progeny.GenerationwiseFormatter(), return_root=True):
+			print(ahne)
+		a.parent = acdf
+		input("""
+Changed: {}'s parent is now {}.
+The graph is now circular, a regular call to progeny would recurse infinitely.
+But it's possible to avoid circles and yield every node exactly once
+Call {}'s progeny:""".format(a, acdf, ac))
+		#for ahne in ac.progeny(circle_checker=AvoidCircles()):
+			#print(ahne)
+		for ahne in ac: # short for the above
+			print(ahne)
+	if not input("""
+The ancestors of {}:""".format(acdf)):
+		for ancestor in acdf.ancestors:
+			print(ancestor)
+	if not input("CachedNodes test"):
+		b = CachedDataNode("b")
+		b2 = CachedDataNode("b")
+		c = CachedDataNode("c")
+		print(b is b2)
+		print(b is c)
