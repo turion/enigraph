@@ -15,3 +15,5 @@ class EnigtreeReadOnlyError(EnigtreeValueError):
 class EnigtreeInitialisationError(EnigtreeValueError):
 	pass
 
+class EnigtreeNoParent(EnigtreeValueError):
+	pass

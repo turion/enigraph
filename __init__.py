@@ -42,13 +42,20 @@ class BaseNode(metaclass=abc.ABCMeta):
 
 	@property
 	def parent(self):
-		return self._get_parent()
+		parent = self._get_parent()
+		if parent != None:
+			return parent
+		else:
+			raise EnigtreeNoParent
 	@parent.setter
 	def parent(self, parent):
 		if self.readonly:
 			raise EnigtreeReadOnlyError
 		else:
-			old_parent = self.parent # cache to prevent multiple, potentially expensive calculation
+			try:
+				old_parent = self.parent # cache to prevent multiple, potentially expensive calculation
+			except EnigtreeNoParent:
+				old_parent = None
 			if old_parent != parent:
 				self._set_parent(parent)
 				try:
@@ -103,12 +110,16 @@ class BaseNode(metaclass=abc.ABCMeta):
 	def __iter__(self):
 		return self.progeny(circle_checker=progeny.AvoidCircles())
 
-	@property
-	def ancestors(self):
+	def ancestors(self, return_self=False):
 		avoid_circles = progeny.AvoidCircles()
 		next_node = self
-		while next_node and avoid_circles(next_node):
-			next_node = next_node.parent
+		if return_self:
+			yield self
+		while avoid_circles(next_node):
+			try:
+				next_node = next_node.parent
+			except EnigtreeNoParent:
+				break
 			yield next_node
 
 class Node(BaseNode):
@@ -184,9 +195,8 @@ Call {}'s progeny:""".format(a, acdf, ac))
 			print(ahne)
 	if not input("""
 The ancestors of {}:""".format(acdf)):
-		for ancestor in acdf.ancestors:
+		for ancestor in acdf.ancestors():#return_self=True):
 			print(ancestor)
-		print(acd < acdf)
 	if not input("CachedNodes test"):
 		b = CachedDataNode("b")
 		b2 = CachedDataNode("b")

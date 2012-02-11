@@ -40,19 +40,25 @@ class DebugFormatter(NoFormatter):
 class AvoidCircles:
 	def __init__(self):
 		self.visited = set() # let's hope that the class is hashable
+	def _redefine_add(self):
+		self.visited = list(self.visited)
+		self.add = self.visited.append
 	def add(self, node):
 		try:
 			self.visited.add(node)
 		except TypeError: # the node or some node in the progeny was not hashable, recast set as slower list and proceed
-			self.visited = list(self.visited)
-			self.add = self.visited.append
+			self._redefine_add()
 			self.add(node)
 	def __call__(self, node):
-		if node not in self.visited:
-			self.add(node)
-			return True
-		else:
-			return False
+		try:
+			if node not in self.visited:
+				self.add(node)
+				return True
+			else:
+				return False
+		except TypeError: # the node or some node in the progeny was not hashable, recast set as slower list and proceed
+			self._redefine_add()
+			return True # since it's not hashable, it couldn't be in there
 
 
 def progeny_depth(node, generations=-1, formatter=NoFormatter(), circle_checker=lambda child: True):
