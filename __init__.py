@@ -43,7 +43,7 @@ class BaseNode(metaclass=abc.ABCMeta):
 	@property
 	def parent(self):
 		parent = self._get_parent()
-		if parent != None:
+		if parent is not None:
 			return parent
 		else:
 			raise EnigtreeNoParent
