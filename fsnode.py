@@ -3,15 +3,18 @@
 
 """enigtree.fsnode"""
 
-#import enigtree
+import enigtree
+from . import contextmanagers
+
 import os
 import os.path
-import shutil
-import time
-import threading
-import contextmanagers
 
-import __init__ as enigtree
+import shutil
+
+import time
+
+import threading
+
 
 
 class EnigtreeDirectoryError(enigtree.EnigtreeValueError):
@@ -154,12 +157,11 @@ class FSNode(enigtree.BaseNode): # TODO: threadsafety only works if the locks aq
 				os.remove(self.path)
 
 
-if __name__ == "__main__":
+def test():
 	try:
 		test = FSNode("~/et/enigtreetest", new="directory")
 		test == None
 		print(test.path)
-		p = test
 		print("ancestors:")
 		for node in test.ancestors():
 			print(node)

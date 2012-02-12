@@ -6,8 +6,8 @@ Provides a simple tree functionality, mainly for enigmage."""
 
 __ALL__ = [ 'directory' ]
 
-from errors import *
-import progeny
+from .errors import *
+from . import progeny
 
 import abc
 import collections
@@ -159,7 +159,7 @@ class CachedNode(BaseNode):
 class CachedDataNode(CachedNode, DataNode):
 	pass
 
-if __name__ == "__main__":
+def test():
 	a = DataNode("Opa")
 	ab = DataNode("Onkel 1")
 	ac = DataNode("Onkel 2")
