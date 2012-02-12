@@ -17,16 +17,16 @@ import threading
 
 
 
-class EnigtreeDirectoryError(enigtree.EnigtreeValueError):
+class EnigtreeFSError(enigtree.EnigtreeValueError):
 	pass
 
-class EnigtreeNotADirectory(EnigtreeDirectoryError):
+class EnigtreeNotADirectory(EnigtreeFSError):
 	pass
 
-class EnigtreeExists(EnigtreeDirectoryError):
+class EnigtreeExists(EnigtreeFSError):
 	pass
 
-class EnigtreeInvalidPath(EnigtreeDirectoryError):
+class EnigtreeInvalidPath(EnigtreeFSError):
 	pass
 
 #timeoutcached is not very clever to use since it can lead to inconsistencies
