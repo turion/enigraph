@@ -1,9 +1,9 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""enigtree.fsnode"""
+"""enigraph.fsnode"""
 
-import enigtree
+import enigraph
 from . import contextmanagers
 
 import os
@@ -17,16 +17,16 @@ import threading
 
 
 
-class EnigtreeFSError(enigtree.EnigtreeValueError):
+class EnigraphFSError(enigraph.EnigraphValueError):
 	pass
 
-class EnigtreeNotADirectory(EnigtreeFSError):
+class EnigraphNotADirectory(EnigraphFSError):
 	pass
 
-class EnigtreeExists(EnigtreeFSError):
+class EnigraphExists(EnigraphFSError):
 	pass
 
-class EnigtreeInvalidPath(EnigtreeFSError):
+class EnigraphInvalidPath(EnigraphFSError):
 	pass
 
 #timeoutcached is not very clever to use since it can lead to inconsistencies
@@ -61,7 +61,7 @@ class DebugCM:
 	def __exit__(self, *args):
 		return False
 
-class FSNode(enigtree.BaseNode): # TODO: threadsafety only works if the locks aquire all the locks of the parents
+class FSNode(enigraph.BaseNode): # TODO: threadsafety only works if the locks aquire all the locks of the parents
 	def __init__(self, path, new=False, new_fail_if_exists=True, parent=None):
 		super().__init__()
 		self.lock = threading.RLock()
@@ -71,7 +71,7 @@ class FSNode(enigtree.BaseNode): # TODO: threadsafety only works if the locks aq
 		name = os.path.split(path)[1]
 		if parent:
 			if os.path.isabs(path):
-				raise enigtree.EnigtreeValueError("If appending to an existing parent, path must be relative")
+				raise enigraph.EnigraphValueError("If appending to an existing parent, path must be relative")
 			path = os.path.join(parent.path, path)
 			self._parent = parent
 		elif os.path.split(path)[0] == path: # reached the root of the filesystem
@@ -82,7 +82,7 @@ class FSNode(enigtree.BaseNode): # TODO: threadsafety only works if the locks aq
 		if new:
 			if os.path.exists(path):
 				if new_fail_if_exists:
-					raise EnigtreeExists(self)
+					raise EnigraphExists(self)
 			else:
 				if new in ("directory", "dir"):
 					os.mkdir(path)
@@ -92,14 +92,14 @@ class FSNode(enigtree.BaseNode): # TODO: threadsafety only works if the locks aq
 				elif callable(new):
 					new(path)
 			if not os.path.exists(path):
-				raise EnigtreeInitialisationError("Couldn't create new file at {} with recipe {}".format(self.path, new))
+				raise EnigraphInitialisationError("Couldn't create new file at {} with recipe {}".format(self.path, new))
 		with self.lock:
 			self._name = name
 	@property
 	def path(self):
 		try:
 			return os.path.join(self.parent.path, self.name)
-		except enigtree.EnigtreeNoParent:
+		except enigraph.EnigraphNoParent:
 			return self.name
 	@property
 	def name(self):
@@ -107,7 +107,7 @@ class FSNode(enigtree.BaseNode): # TODO: threadsafety only works if the locks aq
 	@name.setter
 	def name(self, name):
 		if os.path.split(name)[0]:
-			raise EnigtreeInvalidPath("Can't set name to {}, since it is compound")
+			raise EnigraphInvalidPath("Can't set name to {}, since it is compound")
 		with self.locks():
 			old_name = self._name
 			old_path = self.path
@@ -135,13 +135,13 @@ class FSNode(enigtree.BaseNode): # TODO: threadsafety only works if the locks aq
 			elif self.exists: # rather perform the test a few times too often, the file might have been deleted in the meantime
 				return ()
 			else:
-				raise EnigtreeInvalidPath(self)
+				raise EnigraphInvalidPath(self)
 	def _set_parent(self, parent):
 		with self.locks(), parent.locks(): # If this deadlocks because parent in self.ancestors(), I didn't understand RLocks
 			if not parent.exists:
-				raise EnigtreeInvalidPath(parent)
+				raise EnigraphInvalidPath(parent)
 			elif not parent.isdir:
-				raise EnigtreeNotADirectoryError(parent)
+				raise EnigraphNotADirectoryError(parent)
 			else:
 				shutil.move(self.path, parent.path)
 				self._parent = parent
@@ -159,22 +159,22 @@ class FSNode(enigtree.BaseNode): # TODO: threadsafety only works if the locks aq
 
 def test():
 	try:
-		test = FSNode("~/et/enigtreetest", new="directory")
+		test = FSNode("~/et/Enigraphtest", new="directory")
 		test == None
 		print(test.path)
 		print("ancestors:")
 		for node in test.ancestors():
 			print(node)
 		child = FSNode("bla", new="file", parent=test)
-		test2 = FSNode(os.path.expanduser("~/et/enigtreetest2"), new="directory")
+		test2 = FSNode(os.path.expanduser("~/et/Enigraphtest2"), new="directory")
 		test.parent = test2
 		child.parent = test2
-		for sub in test2.progeny(method="depth", formatter = enigtree.progeny.PrettyFormatter(), return_root=True):
+		for sub in test2.progeny(method="depth", formatter = enigraph.progeny.PrettyFormatter(), return_root=True):
 			print(sub)
 		for p in child.ancestors(True):
 			print(p)
 	finally:
-		for cleanup_path in map(os.path.expanduser, ("~/et/enigtreetest", "~/et/enigtreetest2")):
+		for cleanup_path in map(os.path.expanduser, ("~/et/Enigraphtest", "~/et/Enigraphtest2")):
 			try:
 				shutil.rmtree(cleanup_path)
 			except OSError:

@@ -1,19 +1,19 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""enigtree.errors"""
+"""enigraph.errors"""
 
-class EnigtreeException(Exception):
+class EnigraphException(Exception):
 	pass
 
-class EnigtreeValueError(EnigtreeException, ValueError):
+class EnigraphValueError(EnigraphException, ValueError):
 	pass
 
-class EnigtreeReadOnlyError(EnigtreeValueError):
+class EnigraphReadOnlyError(EnigraphValueError):
 	pass
 
-class EnigtreeInitialisationError(EnigtreeValueError):
+class EnigraphInitialisationError(EnigraphValueError):
 	pass
 
-class EnigtreeNoParent(EnigtreeValueError):
+class EnigraphNoParent(EnigraphValueError):
 	pass

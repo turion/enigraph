@@ -1,7 +1,7 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""enigtree
+"""enigraph
 Provides a simple tree functionality, mainly for enigmage."""
 
 __ALL__ = [ 'directory' ]
@@ -46,15 +46,15 @@ class BaseNode(metaclass=abc.ABCMeta):
 		if parent is not None:
 			return parent
 		else:
-			raise EnigtreeNoParent
+			raise EnigraphNoParent
 	@parent.setter
 	def parent(self, parent):
 		if self.readonly:
-			raise EnigtreeReadOnlyError
+			raise EnigraphReadOnlyError
 		else:
 			try:
 				old_parent = self.parent # cache to prevent multiple, potentially expensive calculation
-			except EnigtreeNoParent:
+			except EnigraphNoParent:
 				old_parent = None
 			if old_parent != parent:
 				self._set_parent(parent)
@@ -118,7 +118,7 @@ class BaseNode(metaclass=abc.ABCMeta):
 		while avoid_circles(next_node):
 			try:
 				next_node = next_node.parent
-			except EnigtreeNoParent:
+			except EnigraphNoParent:
 				break
 			yield next_node
 

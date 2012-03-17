@@ -5,7 +5,7 @@
 Kann man sicher mit Dekoratoren direkt an den Funktionen besser bewerkstelligen"""
 
 import threading
-import enigtree
+import enigraph
 
 class ThreadNode(enigtree.Node):
 	def __init__(self, timeout = None):
