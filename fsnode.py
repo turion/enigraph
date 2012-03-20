@@ -129,7 +129,7 @@ class BaseFSNode(enigraph.BaseNode): # TODO: threadsafety only works if the lock
 	def _get_children(self):
 		with self.locks():
 			if self.isdir:
-				return (type(self)(os.path.join(self.path, child_path)) for child_path in os.listdir(self.path))
+				return (type(self)(child_name, parent=self) for child_name in os.listdir(self.path))
 			elif self.exists: # rather perform the test a few times too often, the file might have been deleted in the meantime
 				return ()
 			else:
