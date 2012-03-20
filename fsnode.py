@@ -79,6 +79,7 @@ class BaseFSNode(enigraph.BaseNode): # TODO: threadsafety only works if the lock
 			name = path
 		else:
 			self._parent = type(self)(os.path.split(path)[0], new=new, new_fail_if_exists=False)
+			self._parent._add_child_notification(self)
 		if new:
 			if os.path.exists(path):
 				if new_fail_if_exists:
@@ -157,6 +158,7 @@ class BaseFSNode(enigraph.BaseNode): # TODO: threadsafety only works if the lock
 				shutil.rmtree(self.path)
 			else:
 				os.remove(self.path)
+#TODO: For efficiency, _add_child_notification should save the child to avoid the bug (node.parent.children[0] is not node).
 
 class FSNode(enigraph.CachedChildrenNode, BaseFSNode):
 	pass
