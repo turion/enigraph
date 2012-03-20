@@ -148,13 +148,24 @@ class DataNode(Node):
 
 # Ähnliches Ergebnis lässt sich erzielen, wenn man eine Klassendefinition mit @functools.lru_cache() dekoriert
 class CachedNode(BaseNode):
-	cache = {}
+	def __init__(self, index):
+		super().__init__()
 	def __new__(cls, index):
 		try:
-			return cls.cache[index]
-		except KeyError:
-			cls.cache[index] = result = super().__new__(cls)
+			cache = cls.cache
+		except AttributeError:
+			result = super().__new__(cls)
+			cls.cache = {index: result}
 			return result
+		else:
+			try:
+				return cache[index]
+			except KeyError:
+				cls.cache[index] = result = super().__new__(cls)
+				return result
+	@classmethod
+	def clear_cache(cls):
+		cls.cache = {}
 
 class CachedDataNode(CachedNode, DataNode):
 	pass
