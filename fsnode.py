@@ -61,7 +61,7 @@ class DebugCM:
 	def __exit__(self, *args):
 		return False
 
-class FSNode(enigraph.BaseNode): # TODO: threadsafety only works if the locks aquire all the locks of the parents
+class BaseFSNode(enigraph.BaseNode): # TODO: threadsafety only works if the locks aquire all the locks of the parents
 	def __init__(self, path, new=False, new_fail_if_exists=True, parent=None):
 		super().__init__()
 		self.lock = threading.RLock()
@@ -158,6 +158,8 @@ class FSNode(enigraph.BaseNode): # TODO: threadsafety only works if the locks aq
 			else:
 				os.remove(self.path)
 
+class FSNode(enigraph.CachedChildrenNode, BaseFSNode):
+	pass
 
 def test():
 	try:
