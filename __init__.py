@@ -149,7 +149,7 @@ class DataNode(Node):
 # Ähnliches Ergebnis lässt sich erzielen, wenn man eine Klassendefinition mit @functools.lru_cache() dekoriert
 class CachedNode(BaseNode):
 	def __init__(self, index):
-		super().__init__()
+		super().__init__(index)
 	def __new__(cls, index):
 		try:
 			cache = cls.cache
@@ -178,7 +178,10 @@ class CachedChildrenNode(BaseNode):
 			self._children_cache = super()._get_children()
 			return self._children_cache
 	def _delete_children_cache(self):
-		del self._children_cache
+		try:
+			del self._children_cache
+		except AttributeError:
+			pass
 	def _add_child_notification(self, child):
 		self._delete_children_cache() # add more sophisticated algorithm here 
 	def _remove_child_notification(self, child):
