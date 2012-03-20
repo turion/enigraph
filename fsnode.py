@@ -126,8 +126,6 @@ class FSNode(enigraph.BaseNode): # TODO: threadsafety only works if the locks aq
 	def exists(self):
 		return os.path.exists(self.path)
 	
-	def _get_parent(self):
-		return self._parent
 	def _get_children(self):
 		with self.locks():
 			if self.isdir:
@@ -136,6 +134,10 @@ class FSNode(enigraph.BaseNode): # TODO: threadsafety only works if the locks aq
 				return ()
 			else:
 				raise EnigraphInvalidPath(self)
+
+	def _get_parent(self):
+		return self._parent
+
 	def _set_parent(self, parent):
 		with self.locks(), parent.locks(): # If this deadlocks because parent in self.ancestors(), I didn't understand RLocks
 			if not parent.exists:
