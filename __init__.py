@@ -170,6 +170,20 @@ class CachedNode(BaseNode):
 class CachedDataNode(CachedNode, DataNode):
 	pass
 
+class CachedChildrenNode(BaseNode):
+	def _get_children(self):
+		try:
+			return self._children_cache
+		except AttributeError:
+			self._children_cache = super()._get_children()
+			return self._children_cache
+	def _delete_children_cache(self):
+		del self._children_cache
+	def _add_child_notification(self, child):
+		self._delete_children_cache() # add more sophisticated algorithm here 
+	def _remove_child_notification(self, child):
+		self._delete_children_cache()
+
 def test():
 	a = DataNode("Opa")
 	ab = DataNode("Onkel 1")
