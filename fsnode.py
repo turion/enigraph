@@ -61,29 +61,27 @@ class DebugCM:
 	def __exit__(self, *args):
 		return False
 
-class BaseFSNode(enigraph.BaseNode): # TODO: threadsafety only works if the locks aquire all the locks of the parents
-	def __init__(self, path, new=False, new_fail_if_exists=True, parent=None):
-		super().__init__()
-		self.lock = threading.RLock()
-		self.locks = lambda: contextmanagers.iter_nested((node.lock for node in self.ancestors(return_self=True)))
-		#self.locks = DebugCM()
+class BaseFSNode(enigraph.CachedNode): # TODO: threadsafety only works if the locks aquire all the locks of the parents
+	def __new__(cls, path, new=False, new_fail_if_exists=True, parent=None):
 		path = expandpath(path)
 		name = os.path.split(path)[1]
 		if parent:
 			if os.path.isabs(path):
 				raise enigraph.EnigraphValueError("If appending to an existing parent, path must be relative")
 			path = os.path.join(parent.path, path)
-			self._parent = parent
+		instance = super().__new__(cls, path)
+		if parent:
+			instance._parent = parent
 		elif os.path.split(path)[0] == path: # reached the root of the filesystem
-			self._parent = None
+			instance._parent = None
 			name = path
 		else:
-			self._parent = type(self)(os.path.split(path)[0], new=new, new_fail_if_exists=False)
-			self._parent._add_child_notification(self)
+			instance._parent = cls(os.path.split(path)[0], new=new, new_fail_if_exists=False)
+			instance._parent._add_child_notification(instance)
 		if new:
 			if os.path.exists(path):
 				if new_fail_if_exists:
-					raise EnigraphExists(self)
+					raise EnigraphExists(instance)
 			else:
 				if new in ("directory", "dir"):
 					os.mkdir(path)
@@ -93,9 +91,14 @@ class BaseFSNode(enigraph.BaseNode): # TODO: threadsafety only works if the lock
 				elif callable(new):
 					new(path)
 			if not os.path.exists(path):
-				raise EnigraphInitialisationError("Couldn't create new file at {} with recipe {}".format(self.path, new))
-		with self.lock:
-			self._name = name
+				raise EnigraphInitialisationError("Couldn't create new file at {} with recipe {}".format(instance.path, new))
+		instance.lock = threading.RLock()
+		instance.locks = lambda: contextmanagers.iter_nested((node.lock for node in instance.ancestors(return_self=True)))
+		with instance.lock:
+			instance._name = name
+		return instance
+	def __init__(self, path, new=False, new_fail_if_exists=True, parent=None):
+		super().__init__()
 	@property
 	def path(self):
 		try:
@@ -167,16 +170,25 @@ def test():
 	try:
 		test = FSNode("~/et/Enigraphtest", new="directory")
 		test == None
-		print(test.path)
-		print("ancestors:")
+		print("We have a new node at {}.\nIt's ancestors:".format(test.path))
 		for node in test.ancestors():
 			print(node)
+		
 		child = FSNode("bla", new="file", parent=test)
+		print("A child: {}".format(child.path))
+		print("A lot of nodes are now already in the cache:")
+		for path in type(child).cache:
+			print(path)
+		child2 = FSNode("~/et/Enigraphtest/bla")
+		print("Create a child2 with the same path as child. Let's check the value of 'child is child2': {}".format(child is child2))
+
 		test2 = FSNode(os.path.expanduser("~/et/Enigraphtest2"), new="directory")
 		test.parent = test2
 		child.parent = test2
+		print("Let's mess around with the directory. Now it looks like this:")
 		for sub in test2.progeny(method="depth", formatter = enigraph.progeny.PrettyFormatter(), return_root=True):
 			print(sub)
+		print("The ancestry of {}".format(child))
 		for p in child.ancestors(True):
 			print(p)
 	finally:
