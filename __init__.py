@@ -132,7 +132,7 @@ class Node(BaseNode):
 	def _set_parent(self, parent):
 		self._parent = parent
 	def _get_children(self):
-		return iter(self._children) # Do we need iter?
+		return self._children
 	def _add_child_notification(self, child):
 		self._children.add(child)
 	def _remove_child_notification(self, child):
@@ -172,7 +172,7 @@ class CachedDataNode(CachedNode, DataNode):
 class CachedChildrenNode(BaseNode):
 	def _get_children(self):
 		try:
-			return self._children_cache
+			return self._children_cache # FIXME: Might give strange bugs if one subclasses this more than once. Therefore, better implement as a decoration
 		except AttributeError:
 			self._children_cache = super()._get_children()
 			return self._children_cache
@@ -201,6 +201,8 @@ def test():
 	acdf.parent = acd
 	aceg.parent = ace
 	if not input("The progeny of {} (press any key to abort, press enter to test)".format(a)):
+		input("\nHis children")
+		print([str(child) for child in a.children])
 		input("\nWidth first")
 		for ahne in a.progeny(formatter = progeny.GenerationwiseFormatter()):
 			print(ahne)

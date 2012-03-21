@@ -61,6 +61,14 @@ class DebugCM:
 	def __exit__(self, *args):
 		return False
 
+class CheckedCachedNode(enigraph.CachedNode):
+	def __new__(cls, path):
+		instance = super().__new__(path)
+		if instance.path != path: # Since path is mutable
+			del cls.cache[path]
+			instance = super().__new__(path)
+		return instance
+
 class BaseFSNode(enigraph.CachedNode): # TODO: threadsafety only works if the locks aquire all the locks of the parents
 	def __new__(cls, path, new=False, new_fail_if_exists=True, parent=None):
 		path = expandpath(path)
@@ -120,6 +128,7 @@ class BaseFSNode(enigraph.CachedNode): # TODO: threadsafety only works if the lo
 				os.rename(old_path, self.path)
 			except OSError:
 				self._name = old_name
+				raise
 	@property
 	def isdir(self):
 		return os.path.isdir(self.path)
@@ -133,7 +142,7 @@ class BaseFSNode(enigraph.CachedNode): # TODO: threadsafety only works if the lo
 	def _get_children(self):
 		with self.locks():
 			if self.isdir:
-				return (type(self)(child_name, parent=self) for child_name in os.listdir(self.path))
+				return tuple(type(self)(child_name, parent=self) for child_name in os.listdir(self.path))
 			elif self.exists: # rather perform the test a few times too often, the file might have been deleted in the meantime
 				return ()
 			else:
@@ -181,6 +190,8 @@ def test():
 			print(path)
 		child2 = FSNode("~/et/Enigraphtest/bla")
 		print("Create a child2 with the same path as child. Let's check the value of 'child is child2': {}".format(child is child2))
+		child2.name = "blub"
+		print("Changed the name of child2 to {}, now child is: {}".format(child2, child))
 
 		test2 = FSNode(os.path.expanduser("~/et/Enigraphtest2"), new="directory")
 		test.parent = test2
