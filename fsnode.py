@@ -161,7 +161,7 @@ class BaseFSNode(enigraph.CachedNode): # TODO: threadsafety only works if the lo
 				shutil.rmtree(self.path)
 			else:
 				os.remove(self.path)
-#TODO: For efficiency, _add_child_notification should save the child to avoid the bug (node.parent.children[0] is not node).
+#TODO: For efficiency, _add_child_notification should save the child
 
 class FSNode(enigraph.CachedChildrenNode, BaseFSNode):
 	pass

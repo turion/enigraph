@@ -148,8 +148,7 @@ class DataNode(Node):
 
 # Ähnliches Ergebnis lässt sich erzielen, wenn man eine Klassendefinition mit @functools.lru_cache() dekoriert
 class CachedNode(BaseNode):
-	def __init__(self, index):
-		super().__init__(index)
+	"""User has to implement __init__ himself"""
 	def __new__(cls, index):
 		try:
 			cache = cls.cache
