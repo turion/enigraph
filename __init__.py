@@ -138,6 +138,13 @@ class Node(BaseNode):
 	def _remove_child_notification(self, child):
 		self._children.remove(child)
 
+class ChildListNode(Node):
+	def __init__(self):
+		super().__init__()
+		self._children = list()
+	def _add_child_notification(self, child):
+		self._children.append(child)
+
 
 class DataNode(Node):
 	def __init__(self, data):
