@@ -12,7 +12,7 @@ from . import progeny
 import abc
 import collections
 
-FollowingInformation = collections.namedtuple("FollowingInformation", "node tag")
+Following = collections.namedtuple("Following", "node tag")
 
 class BaseNode(metaclass=abc.ABCMeta):
 	"""You will have to implement:
@@ -35,7 +35,7 @@ class BaseNode(metaclass=abc.ABCMeta):
 		return self._following
 	def follow(self, node, key=None):
 		node._followers[key] = self
-		self._following = FollowingInformation(node=node, key=key)
+		self._following = Following(node=node, key=key)
 	def unfollow(self, node):
 		node._followers.remove(self)
 		self._following = None
