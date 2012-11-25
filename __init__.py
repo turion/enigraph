@@ -59,10 +59,10 @@ class BaseNode(metaclass=abc.ABCMeta):
 			if old_parent != parent:
 				self._set_parent(parent)
 				try:
-					if old_parent:
+					if old_parent != None:
 						old_parent._remove_child_notification(self)
 				finally:
-					if parent:
+					if parent != None:
 						parent._add_child_notification(self) # alternative implementation: do the _add_child_notification first and allow it to raise exceptions that abort setting the parent
 				for key, follower in self._followers.items():
 					follower.parent = parent._followers[key]
